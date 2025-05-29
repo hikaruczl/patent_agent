@@ -1,5 +1,5 @@
-from .core import handle_query
+from .core import process_command
 
 __all__ = [
-    "handle_query",
+    "process_command",
 ]
