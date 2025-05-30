@@ -2,6 +2,7 @@ import requests
 import json
 from typing import List, Dict, Optional
 from dataclasses import dataclass, field # Ensure dataclass is imported
+from patent_agent.config import get_api_key # Import the API key loader
 
 # Definition of PatentSearchResult (should already exist)
 @dataclass
@@ -79,6 +80,14 @@ def search_patents(query: str, filters: Optional[Dict] = None, max_results: int 
     
     # Using the simpler OR for all specified query/filter terms for now:
     search_query_payload = {"q": {"_or": query_conditions}, "f": DEFAULT_FIELDS, "o": {"per_page": max_results}}
+
+    # Get API key and add to payload if available
+    api_key = get_api_key('PATENTSVIEW_API_KEY')
+    if api_key:
+        search_query_payload["key"] = api_key # Add key to payload if present
+        print("INFO: Using configured PatentsView API Key.") # Changed DEBUG to INFO
+    else:
+        print("INFO: No PatentsView API Key found or configured. Using public access.") # Changed DEBUG to INFO
 
 
     try:

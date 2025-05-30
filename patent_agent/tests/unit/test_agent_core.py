@@ -91,5 +91,56 @@ class TestAgentCore(unittest.TestCase):
         self.assertIsInstance(result, str)
         self.assertIn("No command entered", result)
 
+    # Add new test methods within the existing TestAgentCore class:
+    def test_process_command_search_empty_query_terms(self):
+        result = process_command("search      ") # Query terms are whitespace
+        self.assertIsInstance(result, str)
+        self.assertTrue(result.startswith("Error: Search query terms cannot be empty."))
+
+    def test_process_command_compare_text_empty_text(self):
+        result = process_command("compare_text US123   ") # Text for comparison is whitespace
+        self.assertIsInstance(result, str)
+        self.assertTrue(result.startswith("Error: Text for comparison cannot be empty."))
+
+    def test_process_command_generate_invalid_section_type(self):
+        result = process_command("generate invention_details about AI")
+        self.assertIsInstance(result, str)
+        self.assertTrue(result.startswith("Error: Unsupported section type 'invention_details'."))
+        self.assertIn("Supported types are: abstract, background, summary, claims", result)
+
+    def test_process_command_generate_empty_topic(self):
+        result = process_command("generate abstract about    ")
+        self.assertIsInstance(result, str)
+        self.assertTrue(result.startswith("Error: Topic keywords for generation cannot be empty."))
+
+    # Add tests for correct error messages for other commands too if not covered by existing tests
+    def test_process_command_search_no_args(self): # This is same as test_process_command_search_invalid
+        result = process_command("search")
+        self.assertTrue(result.startswith("Error: Search command requires query terms."))
+
+    def test_process_command_compare_not_enough_args(self): # This is same as test_process_command_compare_invalid
+        result = process_command("compare id1")
+        self.assertTrue(result.startswith("Error: Compare command requires exactly two patent IDs."))
+    
+    def test_process_command_compare_too_many_args(self): # Assuming it takes exactly two
+        result = process_command("compare id1 id2 id3")
+        self.assertTrue(result.startswith("Error: Compare command requires exactly two patent IDs."))
+
+    def test_process_command_compare_text_no_text(self): # This is same as test_process_command_compare_text_invalid
+        result = process_command("compare_text id1")
+        self.assertTrue(result.startswith("Error: Compare_text command requires a patent ID and text."))
+
+    def test_process_command_generate_malformed(self): # This is same as test_process_command_generate_invalid_format
+        result = process_command("generate abstract AI") # Missing "about"
+        self.assertTrue(result.startswith("Error: Generate command format is"))
+    
+    def test_process_command_summarize_no_id(self): # This is same as test_process_command_summarize_invalid
+        result = process_command("summarize")
+        self.assertTrue(result.startswith("Error: Summarize command requires exactly one patent ID."))
+
+    def test_process_command_summarize_too_many_ids(self):
+        result = process_command("summarize id1 id2")
+        self.assertTrue(result.startswith("Error: Summarize command requires exactly one patent ID."))
+
 if __name__ == '__main__':
     unittest.main()

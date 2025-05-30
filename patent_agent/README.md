@@ -15,7 +15,7 @@ The project is structured into several key modules:
 
 *   **`src/agent_core/`**: Contains the central logic for the agent. It processes user queries and coordinates tasks between other modules.
 *   **`src/search_module/`**: Responsible for handling patent searches. It now interfaces with the live PatentsView API to fetch real-time patent data.
-*   **`src/comparison_module/`**: (Future) Will contain tools for comparing patent documents.
+*   **`src/comparison_module/`**: (Future) Will contain tools for comparing patent documents. Currently implements mock data comparison of abstracts, assignees, claims structure, and IPC codes.
 *   **`src/writing_module/`**: (Future) Will house functionalities for AI-assisted patent drafting.
 *   **`src/ui/`**: Provides user interfaces for interacting with the agent. Currently, a Command-Line Interface (CLI) is available.
 *   **`config/`**: (Future) For project configuration files (e.g., API keys, database settings).
@@ -46,6 +46,16 @@ The project is structured into several key modules:
     ```bash
     pip install -r requirements.txt
     ```
+4. Configure API Keys (Optional):
+   The project uses a configuration file to manage API keys. To set up your API keys:
+   a. Navigate to the `patent_agent/config/` directory.
+   b. Copy the template file `settings.ini.template` to a new file named `settings.ini`.
+      ```bash
+      cp settings.ini.template settings.ini
+      ```
+   c. Edit `settings.ini` with your actual API key(s) if you have them. For the PatentsView API, a key is optional for basic public access but recommended for higher query rates.
+
+   **Important**: The `settings.ini` file is included in `.gitignore` and should not be committed to version control as it may contain sensitive information.
 
 ### Running the Command-Line Interface (CLI)
 
@@ -55,7 +65,11 @@ The CLI allows you to interact with the patent agent for searching, comparing pa
 
 *   `search <query_terms>`: Searches for patents using the PatentsView API based on the provided query terms.
     *   Example: `search AI in medical diagnosis`
-*   `compare <patent_id_1> <patent_id_2>`: Compares two patents using their IDs (currently uses internal mock data for comparison features).
+*   `compare <patent_id_1> <patent_id_2>`: Compares two patents using their IDs (currently uses internal mock data for demonstration). The comparison analyzes:
+    *   Common keywords in abstracts.
+    *   Assignee information.
+    *   Number of claims and common keywords in claims.
+    *   Common International Patent Classification (IPC) codes and main groups.
     *   Example: `compare US20230000001A1 CN100000000A`
 *   `compare_text <patent_id> <text_to_compare>`: Compares a patent (from mock data) with arbitrary text.
     *   Example: `compare_text US20230000001A1 This text describes a novel cooling system.`
@@ -98,10 +112,23 @@ python -m unittest tests.unit.test_search_module
 ## API Usage and Configuration
 
 ### PatentsView API
-The patent search functionality currently uses the public PatentsView API. This API is generally accessible without an API key for basic use. 
+The patent search functionality currently uses the public PatentsView API. This API is generally accessible without an API key for basic use. If you have an API key for PatentsView (e.g., for higher rate limits), you can add it to the `config/settings.ini` file.
 
-### API Key Management (Future)
-For more extensive use, higher rate limits, or when integrating other APIs that require authentication, API keys would typically be managed through a configuration file (e.g., in the `config/` directory). This project does not yet implement a dedicated configuration system for API keys, but it is a planned enhancement. Users would then need to obtain their own API keys and store them securely as per the specific API provider's instructions.
+### Configuration File (`config/settings.ini`)
+API keys and other sensitive configurations are managed through a configuration file located at `patent_agent/config/settings.ini`.
+
+To set up your configuration:
+1.  Go to the `patent_agent/config/` directory.
+2.  Copy `settings.ini.template` to `settings.ini`.
+3.  Open `settings.ini` in a text editor.
+4.  Under the `[API_KEYS]` section, replace `your_api_key_here` with your actual API key for the respective service (e.g., `PATENTSVIEW_API_KEY`).
+    ```ini
+    [API_KEYS]
+    PATENTSVIEW_API_KEY = your_actual_key_here_if_you_have_one
+    ```
+5.  Save the file. The application will automatically try to load the keys from this file. If a key is not found or the file doesn't exist, functionalities requiring that key might be limited or use public access modes if available.
+
+The `settings.ini` file is ignored by Git (see `.gitignore`) to prevent accidental sharing of sensitive keys. Always ensure this file is kept private.
 
 ## Contributing
 (Future) Details on how to contribute to the project will be added here.

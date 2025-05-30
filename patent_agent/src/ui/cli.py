@@ -39,7 +39,7 @@ except ImportError:
 
 def display_search_results(results: List[PatentSearchResult]):
     if not results:
-        print("No patents found or an error occurred during search.")
+        print("No patents found or an error occurred during search.") # This message could be more specific if core returns detailed errors
         return
     print("\n--- Search Results ---")
     for i, result in enumerate(results, 1):
@@ -90,20 +90,23 @@ def display_summary_result(result_text: str):
 
 def main():
     print("Welcome to the Patent Agent CLI!")
-    print("Commands: search <terms>, compare <id1> <id2>, compare_text <id> <text>, generate <section> about <topic>, summarize <id>, exit")
+    print("Available commands: search <terms>, compare <id1> <id2>, compare_text <id> <text>, generate <section> about <topic>, summarize <id>, exit")
 
     while True:
         user_input = input("\nPatentAgent> ").strip()
-        if not user_input:
+        if not user_input: # Handle empty input line
             continue
-        if user_input.lower() == 'exit':
+        
+        # CLI handles exit directly for immediate effect
+        command_lower = user_input.split()[0].lower() if user_input.split() else "" # Get command for summary check
+        
+        if command_lower == 'exit': # Check command_lower for exit
             print("Exiting Patent Agent CLI. Goodbye!")
             break
         
-        print(f"Processing: '{user_input}'...")
+        # print(f"Processing: '{user_input}'...") # Optional debug line
         try:
-            # Pass the whole string to the agent core
-            result: Union[List[PatentSearchResult], PatentComparisonResult, PatentDraftSection, str, None] = process_command(user_input)
+            result = process_command(user_input)
 
             if isinstance(result, list) and all(isinstance(item, PatentSearchResult) for item in result):
                 display_search_results(result)
@@ -111,19 +114,26 @@ def main():
                 display_comparison_result(result)
             elif isinstance(result, PatentDraftSection):
                 display_generated_section(result)
-            elif isinstance(result, str) and ("Unknown command" in result or "requires" in result or "No command" in result or "not found" in result or "error occurred" in result or "Search query or filters must be provided." in result or "No valid query conditions constructed." in result): # Error message string
-                print(f"Info: {result}") # Changed "Error:" to "Info:" for user feedback that isn't necessarily a critical error
-            elif isinstance(result, str): # Assume it's a summary if it's a string not matching error patterns
-                display_summary_result(result)
-            elif result is None: # Should ideally not happen if process_command returns error strings
-                 print("No result or an unhandled error occurred.")
+            elif isinstance(result, str): # Check if it's an error message or a valid string result (e.g. summary)
+                if result.lower().startswith("error:"):
+                    print(result) # Print error messages directly
+                # Specific check for summarize command's valid string output
+                elif command_lower == "summarize" and not result.startswith("Patent with ID") and not result.startswith("No abstract content") and not result.lower().startswith("error:"):
+                    display_summary_result(result)
+                elif result == "Exiting...": # If core handles exit command (it does now)
+                    print("Exiting Patent Agent CLI. Goodbye!") # Should be caught by direct 'exit' check above ideally
+                    break
+                else: # Other string results that might not be errors but aren't summaries
+                    print(result) 
+            elif result is None: # Should ideally be an error string now from process_command
+                 print("Error: Received no result or an unhandled error occurred in the agent core.")
             else:
-                print(f"Received an unexpected result type: {type(result)}")
+                print(f"Error: Received an unexpected result type: {type(result)}")
 
         except Exception as e:
             print(f"A critical error occurred in CLI: {e}")
             # import traceback
-            # traceback.print_exc()
+            # traceback.print_exc() # Uncomment for debugging
 
 if __name__ == '__main__':
     main()
