@@ -16,9 +16,9 @@ The project is structured into several key modules:
 *   **`src/agent_core/`**: Contains the central logic for the agent. It processes user queries and coordinates tasks between other modules.
 *   **`src/search_module/`**: Responsible for handling patent searches. It now interfaces with the live PatentsView API to fetch real-time patent data.
 *   **`src/comparison_module/`**: (Future) Will contain tools for comparing patent documents. Currently implements mock data comparison of abstracts, assignees, claims structure, and IPC codes.
-*   **`src/writing_module/`**: (Future) Will house functionalities for AI-assisted patent drafting.
+*   **`src/writing_module/`**: Houses functionalities for AI-assisted patent drafting. It can use a Hugging Face Language Model (if configured with an API key) for advanced text generation for patent sections, with a fallback to template-based methods. Also includes a basic patent summarization feature (mock-based).
 *   **`src/ui/`**: Provides user interfaces for interacting with the agent. Currently, a Command-Line Interface (CLI) is available.
-*   **`config/`**: (Future) For project configuration files (e.g., API keys, database settings).
+*   **`config/`**: For project configuration files (e.g., API keys, database settings).
 *   **`data/`**: (Future) For storing local data, cached results, etc.
 *   **`docs/`**: For detailed documentation.
 *   **`tests/`**: Contains unit and integration tests for the project.
@@ -42,7 +42,7 @@ The project is structured into several key modules:
     source venv/bin/activate  # On Windows use `venv\Scripts\activate`
     ```
 3.  Install dependencies:
-    The project now uses external libraries listed in `requirements.txt`.
+    The project uses external libraries listed in `requirements.txt` (including `requests` for patent search and `huggingface_hub` for advanced writing assistance).
     ```bash
     pip install -r requirements.txt
     ```
@@ -73,7 +73,9 @@ The CLI allows you to interact with the patent agent for searching, comparing pa
     *   Example: `compare US20230000001A1 CN100000000A`
 *   `compare_text <patent_id> <text_to_compare>`: Compares a patent (from mock data) with arbitrary text.
     *   Example: `compare_text US20230000001A1 This text describes a novel cooling system.`
-*   `generate <section_type> about <topic_keywords>`: Generates a boilerplate section for a patent document.
+*   `generate <section_type> about <topic_keywords>`: Generates a boilerplate or LLM-enhanced section for a patent document. 
+    *   If a Hugging Face API key is configured and the `huggingface_hub` library is installed, this command uses an AI Language Model (currently `mistralai/Mistral-7B-Instruct-v0.1` or similar) to generate more sophisticated text.
+    *   Otherwise, it falls back to basic template-based generation.
     *   Supported section types: `abstract`, `background`, `summary`, `claims`.
     *   Example: `generate abstract about advanced battery technology`
 *   `summarize <patent_id>`: Summarizes the abstract of a patent (uses internal mock data).
@@ -125,10 +127,19 @@ To set up your configuration:
     ```ini
     [API_KEYS]
     PATENTSVIEW_API_KEY = your_actual_key_here_if_you_have_one
+    # For the writing assistance module (generate command):
+    HUGGINGFACE_API_KEY = your_hf_token_here 
     ```
 5.  Save the file. The application will automatically try to load the keys from this file. If a key is not found or the file doesn't exist, functionalities requiring that key might be limited or use public access modes if available.
 
 The `settings.ini` file is ignored by Git (see `.gitignore`) to prevent accidental sharing of sensitive keys. Always ensure this file is kept private.
+
+### Hugging Face API Key (for Writing Assistance)
+The `generate` command can leverage Language Models (LLMs) hosted on Hugging Face for more advanced text generation. To enable this:
+1. Obtain a User Access Token from Hugging Face (visit your [Hugging Face token settings](https://huggingface.co/settings/tokens)). Ensure the token has permissions to make calls to Inference Providers/API.
+2. Add this token to your `config/settings.ini` file under the `[API_KEYS]` section as `HUGGINGFACE_API_KEY`.
+
+If this key is not provided or the `huggingface_hub` library is not installed, the `generate` command will fall back to a simpler template-based text generation.
 
 ## Contributing
 (Future) Details on how to contribute to the project will be added here.

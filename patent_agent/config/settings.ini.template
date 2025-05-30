@@ -2,3 +2,4 @@
 # Obtain your API key from PatentsView if you need higher query rates or specific features.
 # For basic use, this can be left blank.
 PATENTSVIEW_API_KEY = your_api_key_here
+HUGGINGFACE_API_KEY = your_hf_token_here
